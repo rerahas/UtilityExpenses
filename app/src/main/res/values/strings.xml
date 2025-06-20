@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">光熱費管理</string>
+
+    <string name="hint_year">年 (例: 2025)</string>
+    <string name="hint_month">月 (例: 5)</string>
+    <string name="hint_amount">金額 (円)</string>
+    <string name="button_save">保存する</string>
+    <string name="label_input_section">光熱費の入力</string>
+    <string name="label_history_section">履歴</string>
+    <string name="toast_fill_all_fields">全ての項目を入力してください</string>
+    <string name="toast_saved_successfully">保存しました</string>
+    <string name="toast_invalid_month">月は1から12の間で入力してください</string>
+    <string name="toast_invalid_year">年は4桁で入力してください</string>
+    <string name="toast_invalid_amount">金額を正しく入力してください</string>
+    <string-array name="utility_categories">
+        <item>電気</item>
+        <item>ガス</item>
+        <item>水道</item>
+    </string-array>
+    <!-- ... (existing strings) ... -->
+    <string name="label_summary_section">月次サマリー</string>
+    <string name="monthly_total_format">%1$d年 %2$d月 合計: %3$s</string>
+    <string name="no_data_for_chart">表示するデータがありません</string>
+    <string name="dialog_edit_title">記録の編集</string>
+    <string name="button_cancel">キャンセル</string>
+    <string name="toast_deleted">削除しました</string>
+    <string name="toast_updated">更新しました</string>
+    <string name="delete_confirmation">この項目を削除しますか？</string>
+    <string name="button_delete">削除</string>
+</resources>
