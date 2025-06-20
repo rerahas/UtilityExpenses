@@ -16,15 +16,21 @@ class UtilityBillAdapter(private val onItemClicked: (UtilityBill) -> Unit) :
     ListAdapter<UtilityBill, UtilityBillAdapter.UtilityBillViewHolder>(UtilityBillsComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UtilityBillViewHolder {
-        return UtilityBillViewHolder.create(parent)
+        val holder = UtilityBillViewHolder.create(parent)
+        holder.itemView.setOnClickListener {
+            // Get the current position of the item.
+            val position = holder.bindingAdapterPosition
+            // Make sure the position is valid.
+            if (position != RecyclerView.NO_POSITION) {
+                onItemClicked(getItem(position))
+            }
+        }
+        return holder
     }
 
     override fun onBindViewHolder(holder: UtilityBillViewHolder, position: Int) {
         val current = getItem(position)
-        // Set click listener on the item view
-        holder.itemView.setOnClickListener {
-            onItemClicked(current)
-        }
+        // The click listener is no longer set here.
         holder.bind(current)
     }
 

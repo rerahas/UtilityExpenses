@@ -113,8 +113,11 @@ class MainActivity : AppCompatActivity() {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
-                val billToDelete = billAdapter.currentList[position]
-                showDeleteConfirmationDialog(billToDelete)
+                // Check if the position is valid
+                if (position != RecyclerView.NO_POSITION) {
+                    val billToDelete = billAdapter.currentList[position]
+                    showDeleteConfirmationDialog(billToDelete, position) // Pass position here
+                }
             }
         })
         itemTouchHelper.attachToRecyclerView(recyclerViewBills)
@@ -190,13 +193,13 @@ class MainActivity : AppCompatActivity() {
 
     // --- Dialogs ---
 
-    private fun showDeleteConfirmationDialog(bill: UtilityBill) {
+    private fun showDeleteConfirmationDialog(bill: UtilityBill, position: Int) {
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.delete_confirmation))
             .setMessage("${bill.year}年${bill.month}月 (${bill.category}) のデータを削除します。")
             .setNegativeButton(getString(R.string.button_cancel)) { dialog, _ ->
                 // User cancelled the action, notify adapter to revert the swipe
-                billAdapter.notifyItemChanged(billAdapter.currentList.indexOf(bill))
+                billAdapter.notifyItemChanged(position) // Use the safe position
                 dialog.dismiss()
             }
             .setPositiveButton(getString(R.string.button_delete)) { _, _ ->
@@ -219,9 +222,11 @@ class MainActivity : AppCompatActivity() {
         ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             editSpinnerCategory.adapter = adapter
-            // Set current category
+            // Set current category safely
             val categoryPosition = adapter.getPosition(bill.category)
-            editSpinnerCategory.setSelection(categoryPosition)
+            if (categoryPosition >= 0) {
+                editSpinnerCategory.setSelection(categoryPosition)
+            }
         }
 
         // Pre-fill data
@@ -244,7 +249,6 @@ class MainActivity : AppCompatActivity() {
             }
             .show()
     }
-
 
     // --- Chart ---
 

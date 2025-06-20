@@ -60,7 +60,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // ...
+    // RecyclerView - Use the latest version 1.4.0 and remove the duplicate.
     implementation("androidx.recyclerview:recyclerview:1.4.0")
 
     // Room
@@ -74,15 +74,6 @@ dependencies {
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation ("com.google.android.material:material:1.12.0")
-
-    // Room, RecyclerView, Lifecycle etc.
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion")
-    kapt("androidx.room:room-compiler:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
 
     // Add this line for the chart library
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
