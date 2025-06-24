@@ -12,17 +12,15 @@ import jp.co.orust.utilityexpenses.data.UtilityBill
 import java.text.NumberFormat
 import java.util.Locale
 
-class UtilityBillAdapter(private val onItemClicked: (UtilityBill) -> Unit) :
+class UtilityBillAdapter(private val onItemClicked: (UtilityBill, Int) -> Unit) : // ラムダの引数を変更
     ListAdapter<UtilityBill, UtilityBillAdapter.UtilityBillViewHolder>(UtilityBillsComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UtilityBillViewHolder {
         val holder = UtilityBillViewHolder.create(parent)
         holder.itemView.setOnClickListener {
-            // Get the current position of the item.
             val position = holder.bindingAdapterPosition
-            // Make sure the position is valid.
             if (position != RecyclerView.NO_POSITION) {
-                onItemClicked(getItem(position))
+                onItemClicked(getItem(position), position) // itemとpositionを渡す
             }
         }
         return holder
@@ -30,12 +28,10 @@ class UtilityBillAdapter(private val onItemClicked: (UtilityBill) -> Unit) :
 
     override fun onBindViewHolder(holder: UtilityBillViewHolder, position: Int) {
         val current = getItem(position)
-        // The click listener is no longer set here.
         holder.bind(current)
     }
 
     class UtilityBillViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // ... ViewHolder implementation is the same as before ...
         private val dateTextView: TextView = itemView.findViewById(R.id.textViewDate)
         private val categoryTextView: TextView = itemView.findViewById(R.id.textViewCategory)
         private val amountTextView: TextView = itemView.findViewById(R.id.textViewAmount)
@@ -43,7 +39,6 @@ class UtilityBillAdapter(private val onItemClicked: (UtilityBill) -> Unit) :
         fun bind(bill: UtilityBill) {
             dateTextView.text = "${bill.year}年 ${bill.month}月"
             categoryTextView.text = bill.category
-            // Format amount as currency
             val formatter = NumberFormat.getCurrencyInstance(Locale.JAPAN)
             amountTextView.text = formatter.format(bill.amount.toLong())
         }

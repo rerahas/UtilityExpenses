@@ -29,4 +29,12 @@
     <string name="category_electricity">電気</string>
     <string name="category_gas">ガス</string>
     <string name="category_water">水道</string>
+
+    <string name="year_format">%d年</string>
+    <string name="month_format">%d月</string>
+    <string name="delete_dialog_title">記録の削除</string>
+    <string name="delete_confirmation_message">%1$d年%2$d月の%3$sの記録を削除しますか？</string>
+    <string name="dialog_select_action_title">操作を選択してください</string>
+
+    <string name="category_total">合計</string>
 </resources>

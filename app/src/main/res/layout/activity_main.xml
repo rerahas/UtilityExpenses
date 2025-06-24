@@ -18,58 +18,67 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/textViewInputLabel"
-                style="@style/TextAppearance.Material3.TitleMedium"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                tools:text="電気" />
-
             <LinearLayout
+                android:id="@+id/inputSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
 
                 <TextView
-                    android:id="@+id/textViewYear"
+                    android:id="@+id/textViewInputLabel"
+                    style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:textSize="18sp"
-                    android:padding="12dp"
-                    android:background="?attr/selectableItemBackground"
-                    tools:text="2025年" />
+                    android:layout_marginBottom="8dp"
+                    tools:text="電気" />
 
-                <TextView
-                    android:id="@+id/textViewMonth"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    android:padding="12dp"
-                    android:background="?attr/selectableItemBackground"
-                    tools:text="5月" />
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/textViewYear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="12dp"
+                        android:textSize="18sp"
+                        tools:text="2025年" />
+
+                    <TextView
+                        android:id="@+id/textViewMonth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="12dp"
+                        android:textSize="18sp"
+                        tools:text="5月" />
+                </LinearLayout>
+
+                <EditText
+                    android:id="@+id/editTextAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:autofillHints=""
+                    android:hint="@string/hint_amount"
+                    android:inputType="number"
+                    android:minHeight="48dp" />
+
+                <Button
+                    android:id="@+id/buttonSave"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
+                    android:text="@string/button_save" />
+
             </LinearLayout>
-
-            <EditText
-                android:id="@+id/editTextAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:autofillHints=""
-                android:hint="@string/hint_amount"
-                android:inputType="number"
-                android:minHeight="48dp" />
-
-            <Button
-                android:id="@+id/buttonSave"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:text="@string/button_save" />
-
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -81,11 +90,11 @@
                 style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:layout_marginBottom="16dp"
+                android:gravity="center"
                 android:visibility="gone"
                 tools:text="2025年 5月 合計: 25,000円"
-                tools:visibility="visible"/>
+                tools:visibility="visible" />
 
             <com.github.mikephil.charting.charts.BarChart
                 android:id="@+id/barChart"
@@ -93,12 +102,12 @@
                 android:layout_height="250dp"
                 android:layout_marginBottom="24dp"
                 android:visibility="gone"
-                tools:visibility="visible"/>
+                tools:visibility="visible" />
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp" />
 
             <TextView
                 style="@style/TextAppearance.Material3.TitleMedium"
