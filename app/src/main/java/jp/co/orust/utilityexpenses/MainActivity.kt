@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.NumberPicker
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -15,9 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import jp.co.orust.utilityexpenses.adapter.UtilityBillAdapter
-import jp.co.orust.utilityexpenses.data.AppDatabase
-import jp.co.orust.utilityexpenses.data.UtilityBill
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -25,6 +23,9 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import jp.co.orust.utilityexpenses.adapter.UtilityBillAdapter
+import jp.co.orust.utilityexpenses.data.AppDatabase
+import jp.co.orust.utilityexpenses.data.UtilityBill
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Calendar
@@ -34,14 +35,13 @@ class MainActivity : AppCompatActivity() {
 
     // UI Components
     private lateinit var spinnerCategory: Spinner
-    private lateinit var editTextYear: EditText
-    private lateinit var editTextMonth: EditText
+    private lateinit var numberPickerYear: NumberPicker
+    private lateinit var numberPickerMonth: NumberPicker
     private lateinit var editTextAmount: EditText
     private lateinit var buttonSave: Button
     private lateinit var recyclerViewBills: RecyclerView
     private lateinit var barChart: BarChart
     private lateinit var textViewMonthlyTotal: TextView
-    private lateinit var textViewSummaryTitle: TextView
 
     private lateinit var billAdapter: UtilityBillAdapter
 
@@ -67,19 +67,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupViews() {
         spinnerCategory = findViewById(R.id.spinnerCategory)
-        editTextYear = findViewById(R.id.editTextYear)
-        editTextMonth = findViewById(R.id.editTextMonth)
+        numberPickerYear = findViewById(R.id.numberPickerYear)
+        numberPickerMonth = findViewById(R.id.numberPickerMonth)
         editTextAmount = findViewById(R.id.editTextAmount)
         buttonSave = findViewById(R.id.buttonSave)
         recyclerViewBills = findViewById(R.id.recyclerViewBills)
         barChart = findViewById(R.id.barChart)
         textViewMonthlyTotal = findViewById(R.id.textViewMonthlyTotal)
-        textViewSummaryTitle = findViewById(R.id.textViewSummaryTitle)
 
         // Pre-fill with current year and month
         val cal = Calendar.getInstance()
-        editTextYear.setText(cal.get(Calendar.YEAR).toString())
-        editTextMonth.setText((cal.get(Calendar.MONTH) + 1).toString())
+        val currentYear = cal.get(Calendar.YEAR)
+        val currentMonth = cal.get(Calendar.MONTH) + 1
+
+        // Setup NumberPickers
+        numberPickerYear.minValue = currentYear - 10
+        numberPickerYear.maxValue = currentYear + 10
+        numberPickerYear.value = currentYear
+
+        numberPickerMonth.minValue = 1
+        numberPickerMonth.maxValue = 12
+        numberPickerMonth.value = currentMonth
     }
 
     private fun setupSpinner() {
@@ -162,12 +170,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateSummary(bills: List<UtilityBill>) {
         if (bills.isEmpty()) {
-            textViewSummaryTitle.visibility = View.GONE
             textViewMonthlyTotal.visibility = View.GONE
             return
         }
 
-        textViewSummaryTitle.visibility = View.VISIBLE
         textViewMonthlyTotal.visibility = View.VISIBLE
 
         val latestBill = bills.first()
@@ -189,6 +195,10 @@ class MainActivity : AppCompatActivity() {
     private fun clearInputFields() {
         editTextAmount.text.clear()
         spinnerCategory.setSelection(0)
+        // Reset pickers to current date
+        val cal = Calendar.getInstance()
+        numberPickerYear.value = cal.get(Calendar.YEAR)
+        numberPickerMonth.value = cal.get(Calendar.MONTH) + 1
     }
 
     // --- Dialogs ---
@@ -212,8 +222,8 @@ class MainActivity : AppCompatActivity() {
     private fun showEditDialog(bill: UtilityBill) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_bill, null)
         val editSpinnerCategory = dialogView.findViewById<Spinner>(R.id.editSpinnerCategory)
-        val editYear = dialogView.findViewById<EditText>(R.id.editYear)
-        val editMonth = dialogView.findViewById<EditText>(R.id.editMonth)
+        val editNumberPickerYear = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerYear)
+        val editNumberPickerMonth = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerMonth)
         val editAmount = dialogView.findViewById<EditText>(R.id.editAmount)
 
         // Setup spinner for the dialog
@@ -230,8 +240,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Pre-fill data
-        editYear.setText(bill.year.toString())
-        editMonth.setText(bill.month.toString())
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        editNumberPickerYear.minValue = currentYear - 10
+        editNumberPickerYear.maxValue = currentYear + 10
+        editNumberPickerYear.value = bill.year
+
+        editNumberPickerMonth.minValue = 1
+        editNumberPickerMonth.maxValue = 12
+        editNumberPickerMonth.value = bill.month
+
         editAmount.setText(bill.amount.toString())
 
         MaterialAlertDialogBuilder(this)
@@ -321,38 +338,30 @@ class MainActivity : AppCompatActivity() {
         originalId: Int = 0
     ): UtilityBill? {
         val category: String
-        val yearStr: String
-        val monthStr: String
+        val year: Int
+        val month: Int
         val amountStr: String
 
         if (isEdit && dialogView != null) {
             category = dialogView.findViewById<Spinner>(R.id.editSpinnerCategory).selectedItem.toString()
-            yearStr = dialogView.findViewById<EditText>(R.id.editYear).text.toString()
-            monthStr = dialogView.findViewById<EditText>(R.id.editMonth).text.toString()
+            year = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerYear).value
+            month = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerMonth).value
             amountStr = dialogView.findViewById<EditText>(R.id.editAmount).text.toString()
         } else {
             category = spinnerCategory.selectedItem.toString()
-            yearStr = editTextYear.text.toString()
-            monthStr = editTextMonth.text.toString()
+            year = numberPickerYear.value
+            month = numberPickerMonth.value
             amountStr = editTextAmount.text.toString()
         }
 
         // Validation
-        if (yearStr.isBlank() || monthStr.isBlank() || amountStr.isBlank()) {
+        if (amountStr.isBlank()) {
             Toast.makeText(this, getString(R.string.toast_fill_all_fields), Toast.LENGTH_SHORT).show()
             return null
         }
-        val year = yearStr.toIntOrNull()
-        val month = monthStr.toIntOrNull()
         val amount = amountStr.toIntOrNull()
-        if (year == null || year < 2000 || year > 2100) {
-            Toast.makeText(this, getString(R.string.toast_invalid_year), Toast.LENGTH_SHORT).show()
-            return null
-        }
-        if (month == null || month !in 1..12) {
-            Toast.makeText(this, getString(R.string.toast_invalid_month), Toast.LENGTH_SHORT).show()
-            return null
-        }
+
+        // Year and month validation is implicitly handled by NumberPicker's range.
         if (amount == null || amount < 0) {
             Toast.makeText(this, getString(R.string.toast_invalid_amount), Toast.LENGTH_SHORT).show()
             return null

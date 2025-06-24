@@ -16,31 +16,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center"
         android:layout_marginBottom="8dp">
 
-        <EditText
-            android:id="@+id/editYear"
-            android:layout_width="0dp"
+        <NumberPicker
+            android:id="@+id/editNumberPickerYear"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/hint_year"
-            android:inputType="number"
-            android:maxLength="4"
-            android:minHeight="48dp"
-            android:layout_marginEnd="4dp"
-            android:autofillHints="" />
+            android:layout_marginEnd="16dp"/>
 
-        <EditText
-            android:id="@+id/editMonth"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/hint_month"
-            android:inputType="number"
-            android:maxLength="2"
-            android:minHeight="48dp"
-            android:layout_marginStart="4dp"
-            android:autofillHints="" />
+        <NumberPicker
+            android:id="@+id/editNumberPickerMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <EditText

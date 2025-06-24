@@ -17,8 +17,7 @@
         <item>ガス</item>
         <item>水道</item>
     </string-array>
-    <!-- ... (existing strings) ... -->
-    <string name="label_summary_section">月次サマリー</string>
+<!--    <string name="label_summary_section">月次サマリー</string>-->
     <string name="monthly_total_format">%1$d年 %2$d月 合計: %3$s</string>
     <string name="no_data_for_chart">表示するデータがありません</string>
     <string name="dialog_edit_title">記録の編集</string>

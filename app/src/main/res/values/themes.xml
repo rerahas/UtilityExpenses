@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.UtilityExpenses" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Theme.UtilityExpenses" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         ...
     </style>
 </resources>
