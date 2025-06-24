@@ -33,16 +33,24 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <NumberPicker
-                    android:id="@+id/numberPickerYear"
+                <TextView
+                    android:id="@+id/textViewYear"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"/>
+                    android:layout_marginEnd="16dp"
+                    android:textSize="18sp"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackground"
+                    tools:text="2025年" />
 
-                <NumberPicker
-                    android:id="@+id/numberPickerMonth"
+                <TextView
+                    android:id="@+id/textViewMonth"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackground"
+                    tools:text="5月" />
             </LinearLayout>
 
             <EditText

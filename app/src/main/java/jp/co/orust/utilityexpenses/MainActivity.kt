@@ -3,12 +3,10 @@ package jp.co.orust.utilityexpenses
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.NumberPicker
 import android.widget.RadioGroup
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -37,8 +35,8 @@ class MainActivity : AppCompatActivity() {
 
     // UI Components
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var numberPickerYear: NumberPicker
-    private lateinit var numberPickerMonth: NumberPicker
+    private lateinit var textViewYear: TextView
+    private lateinit var textViewMonth: TextView
     private lateinit var editTextAmount: EditText
     private lateinit var buttonSave: Button
     private lateinit var recyclerViewBills: RecyclerView
@@ -48,6 +46,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var billAdapter: UtilityBillAdapter
     private var selectedCategory: String = ""
+
+    private var currentYear: Int = 0
+    private var currentMonth: Int = 0
 
     // Database
     private val database by lazy { AppDatabase.getDatabase(this) }
@@ -71,8 +72,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupViews() {
         bottomNavigationView = findViewById(R.id.bottom_navigation)
-        numberPickerYear = findViewById(R.id.numberPickerYear)
-        numberPickerMonth = findViewById(R.id.numberPickerMonth)
+        textViewYear = findViewById(R.id.textViewYear)
+        textViewMonth = findViewById(R.id.textViewMonth)
         editTextAmount = findViewById(R.id.editTextAmount)
         buttonSave = findViewById(R.id.buttonSave)
         recyclerViewBills = findViewById(R.id.recyclerViewBills)
@@ -82,18 +83,59 @@ class MainActivity : AppCompatActivity() {
 
         // Pre-fill with current year and month
         val cal = Calendar.getInstance()
-        val currentYear = cal.get(Calendar.YEAR)
-        val currentMonth = cal.get(Calendar.MONTH) + 1
+        currentYear = cal.get(Calendar.YEAR)
+        currentMonth = cal.get(Calendar.MONTH) + 1
 
-        // Setup NumberPickers
-        numberPickerYear.minValue = currentYear - 10
-        numberPickerYear.maxValue = currentYear + 10
-        numberPickerYear.value = currentYear
+        updateDateTextViews()
 
-        numberPickerMonth.minValue = 1
-        numberPickerMonth.maxValue = 12
-        numberPickerMonth.value = currentMonth
+        textViewYear.setOnClickListener {
+            showYearPickerDialog()
+        }
+
+        textViewMonth.setOnClickListener {
+            showMonthPickerDialog()
+        }
     }
+
+    private fun updateDateTextViews() {
+        textViewYear.text = getString(R.string.year_format, currentYear)
+        textViewMonth.text = getString(R.string.month_format, currentMonth)
+    }
+
+    private fun showYearPickerDialog() {
+        val numberPicker = NumberPicker(this)
+        numberPicker.minValue = currentYear - 10
+        numberPicker.maxValue = currentYear + 10
+        numberPicker.value = currentYear
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("年を選択")
+            .setView(numberPicker)
+            .setPositiveButton("OK") { _, _ ->
+                currentYear = numberPicker.value
+                updateDateTextViews()
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
+    }
+
+    private fun showMonthPickerDialog() {
+        val numberPicker = NumberPicker(this)
+        numberPicker.minValue = 1
+        numberPicker.maxValue = 12
+        numberPicker.value = currentMonth
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("月を選択")
+            .setView(numberPicker)
+            .setPositiveButton("OK") { _, _ ->
+                currentMonth = numberPicker.value
+                updateDateTextViews()
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
+    }
+
 
     private fun setupBottomNavigation() {
         // Set default category
@@ -207,16 +249,17 @@ class MainActivity : AppCompatActivity() {
         editTextAmount.text.clear()
         // Reset pickers to current date
         val cal = Calendar.getInstance()
-        numberPickerYear.value = cal.get(Calendar.YEAR)
-        numberPickerMonth.value = cal.get(Calendar.MONTH) + 1
+        currentYear = cal.get(Calendar.YEAR)
+        currentMonth = cal.get(Calendar.MONTH) + 1
+        updateDateTextViews()
     }
 
     // --- Dialogs ---
 
     private fun showDeleteConfirmationDialog(bill: UtilityBill, position: Int) {
         MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.delete_confirmation))
-            .setMessage("${bill.year}年${bill.month}月 (${bill.category}) のデータを削除します。")
+            .setTitle(getString(R.string.delete_dialog_title))
+            .setMessage(getString(R.string.delete_confirmation_message, bill.year, bill.month, bill.category))
             .setNegativeButton(getString(R.string.button_cancel)) { dialog, _ ->
                 // User cancelled the action, notify adapter to revert the swipe
                 billAdapter.notifyItemChanged(position) // Use the safe position
@@ -360,8 +403,8 @@ class MainActivity : AppCompatActivity() {
             amountStr = dialogView.findViewById<EditText>(R.id.editAmount).text.toString()
         } else {
             category = selectedCategory
-            year = numberPickerYear.value
-            month = numberPickerMonth.value
+            year = currentYear
+            month = currentMonth
             amountStr = editTextAmount.text.toString()
         }
 
