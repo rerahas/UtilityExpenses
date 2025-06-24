@@ -17,7 +17,6 @@
         <item>ガス</item>
         <item>水道</item>
     </string-array>
-<!--    <string name="label_summary_section">月次サマリー</string>-->
     <string name="monthly_total_format">%1$d年 %2$d月 合計: %3$s</string>
     <string name="no_data_for_chart">表示するデータがありません</string>
     <string name="dialog_edit_title">記録の編集</string>
@@ -26,4 +25,8 @@
     <string name="toast_updated">更新しました</string>
     <string name="delete_confirmation">この項目を削除しますか？</string>
     <string name="button_delete">削除</string>
+
+    <string name="category_electricity">電気</string>
+    <string name="category_gas">ガス</string>
+    <string name="category_water">水道</string>
 </resources>

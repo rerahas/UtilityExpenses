@@ -7,6 +7,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.NumberPicker
+import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -22,6 +23,7 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.orust.utilityexpenses.adapter.UtilityBillAdapter
 import jp.co.orust.utilityexpenses.data.AppDatabase
@@ -34,7 +36,7 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     // UI Components
-    private lateinit var spinnerCategory: Spinner
+    private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var numberPickerYear: NumberPicker
     private lateinit var numberPickerMonth: NumberPicker
     private lateinit var editTextAmount: EditText
@@ -42,8 +44,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerViewBills: RecyclerView
     private lateinit var barChart: BarChart
     private lateinit var textViewMonthlyTotal: TextView
+    private lateinit var textViewInputLabel: TextView
 
     private lateinit var billAdapter: UtilityBillAdapter
+    private var selectedCategory: String = ""
 
     // Database
     private val database by lazy { AppDatabase.getDatabase(this) }
@@ -55,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize all UI components
         setupViews()
-        setupSpinner()
+        setupBottomNavigation()
         setupRecyclerView()
         setupChart()
         observeBills() // Start observing data from the database
@@ -66,7 +70,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupViews() {
-        spinnerCategory = findViewById(R.id.spinnerCategory)
+        bottomNavigationView = findViewById(R.id.bottom_navigation)
         numberPickerYear = findViewById(R.id.numberPickerYear)
         numberPickerMonth = findViewById(R.id.numberPickerMonth)
         editTextAmount = findViewById(R.id.editTextAmount)
@@ -74,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         recyclerViewBills = findViewById(R.id.recyclerViewBills)
         barChart = findViewById(R.id.barChart)
         textViewMonthlyTotal = findViewById(R.id.textViewMonthlyTotal)
+        textViewInputLabel = findViewById(R.id.textViewInputLabel)
 
         // Pre-fill with current year and month
         val cal = Calendar.getInstance()
@@ -90,14 +95,20 @@ class MainActivity : AppCompatActivity() {
         numberPickerMonth.value = currentMonth
     }
 
-    private fun setupSpinner() {
-        ArrayAdapter.createFromResource(
-            this,
-            R.array.utility_categories,
-            android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerCategory.adapter = adapter
+    private fun setupBottomNavigation() {
+        // Set default category
+        selectedCategory = getString(R.string.category_electricity)
+        textViewInputLabel.text = selectedCategory
+
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            selectedCategory = when (item.itemId) {
+                R.id.nav_electricity -> getString(R.string.category_electricity)
+                R.id.nav_gas -> getString(R.string.category_gas)
+                R.id.nav_water -> getString(R.string.category_water)
+                else -> ""
+            }
+            textViewInputLabel.text = selectedCategory
+            true
         }
     }
 
@@ -194,7 +205,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearInputFields() {
         editTextAmount.text.clear()
-        spinnerCategory.setSelection(0)
         // Reset pickers to current date
         val cal = Calendar.getInstance()
         numberPickerYear.value = cal.get(Calendar.YEAR)
@@ -221,25 +231,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun showEditDialog(bill: UtilityBill) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_bill, null)
-        val editSpinnerCategory = dialogView.findViewById<Spinner>(R.id.editSpinnerCategory)
+        val editRadioGroup = dialogView.findViewById<RadioGroup>(R.id.editRadioGroup)
         val editNumberPickerYear = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerYear)
         val editNumberPickerMonth = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerMonth)
         val editAmount = dialogView.findViewById<EditText>(R.id.editAmount)
 
-        // Setup spinner for the dialog
-        ArrayAdapter.createFromResource(
-            this, R.array.utility_categories, android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            editSpinnerCategory.adapter = adapter
-            // Set current category safely
-            val categoryPosition = adapter.getPosition(bill.category)
-            if (categoryPosition >= 0) {
-                editSpinnerCategory.setSelection(categoryPosition)
-            }
+        // Pre-fill data
+        when (bill.category) {
+            getString(R.string.category_electricity) -> editRadioGroup.check(R.id.radio_electricity)
+            getString(R.string.category_gas) -> editRadioGroup.check(R.id.radio_gas)
+            getString(R.string.category_water) -> editRadioGroup.check(R.id.radio_water)
         }
 
-        // Pre-fill data
+
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         editNumberPickerYear.minValue = currentYear - 10
         editNumberPickerYear.maxValue = currentYear + 10
@@ -343,12 +347,19 @@ class MainActivity : AppCompatActivity() {
         val amountStr: String
 
         if (isEdit && dialogView != null) {
-            category = dialogView.findViewById<Spinner>(R.id.editSpinnerCategory).selectedItem.toString()
+            val radioGroup = dialogView.findViewById<RadioGroup>(R.id.editRadioGroup)
+            category = when(radioGroup.checkedRadioButtonId) {
+                R.id.radio_electricity -> getString(R.string.category_electricity)
+                R.id.radio_gas -> getString(R.string.category_gas)
+                R.id.radio_water -> getString(R.string.category_water)
+                else -> ""
+            }
+
             year = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerYear).value
             month = dialogView.findViewById<NumberPicker>(R.id.editNumberPickerMonth).value
             amountStr = dialogView.findViewById<EditText>(R.id.editAmount).text.toString()
         } else {
-            category = spinnerCategory.selectedItem.toString()
+            category = selectedCategory
             year = numberPickerYear.value
             month = numberPickerMonth.value
             amountStr = editTextAmount.text.toString()

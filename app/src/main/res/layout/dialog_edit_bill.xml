@@ -5,12 +5,31 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <Spinner
-        android:id="@+id/editSpinnerCategory"
+    <RadioGroup
+        android:id="@+id/editRadioGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:layout_marginBottom="8dp" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <RadioButton
+            android:id="@+id/radio_electricity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/category_electricity" />
+
+        <RadioButton
+            android:id="@+id/radio_gas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/category_gas" />
+
+        <RadioButton
+            android:id="@+id/radio_water"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/category_water" />
+    </RadioGroup>
 
     <LinearLayout
         android:layout_width="match_parent"
