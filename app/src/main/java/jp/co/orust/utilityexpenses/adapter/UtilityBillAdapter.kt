@@ -37,7 +37,7 @@ class UtilityBillAdapter(private val onItemClicked: (UtilityBill, Int) -> Unit) 
         private val amountTextView: TextView = itemView.findViewById(R.id.textViewAmount)
 
         fun bind(bill: UtilityBill) {
-            dateTextView.text = "${bill.year}年 ${bill.month}月"
+            dateTextView.text = itemView.context.getString(R.string.date_format, bill.year, bill.month)
             categoryTextView.text = bill.category
             val formatter = NumberFormat.getCurrencyInstance(Locale.JAPAN)
             amountTextView.text = formatter.format(bill.amount.toLong())

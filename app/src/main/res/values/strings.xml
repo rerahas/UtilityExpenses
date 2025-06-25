@@ -37,4 +37,5 @@
     <string name="dialog_select_action_title">操作を選択してください</string>
 
     <string name="category_total">合計</string>
+    <string name="date_format">%1$d年 %2$d月</string>
 </resources>
