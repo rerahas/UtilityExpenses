@@ -2,18 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_electricity"
-        android:icon="@drawable/ic_launcher_foreground"
         android:title="@string/category_electricity" />
     <item
         android:id="@+id/nav_gas"
-        android:icon="@drawable/ic_launcher_foreground"
         android:title="@string/category_gas" />
     <item
         android:id="@+id/nav_water"
-        android:icon="@drawable/ic_launcher_foreground"
         android:title="@string/category_water" />
     <item
         android:id="@+id/nav_total"
-        android:icon="@drawable/ic_launcher_foreground"
         android:title="@string/category_total" />
 </menu>

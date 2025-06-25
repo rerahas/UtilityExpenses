@@ -79,7 +79,9 @@
                     android:text="@string/button_save" />
 
             </LinearLayout>
+
             <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/summary_divider"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -133,5 +135,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        app:itemTextAppearanceActive="@style/BottomNavigation.TextAppearance"
+        app:itemTextAppearanceInactive="@style/BottomNavigation.TextAppearance"
+        app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu" />
 </RelativeLayout>

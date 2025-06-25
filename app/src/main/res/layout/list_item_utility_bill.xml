@@ -7,22 +7,23 @@
     android:padding="16dp"
     android:clickable="true"
     android:focusable="true"
+    android:gravity="center_vertical"
     android:background="?android:attr/selectableItemBackground">
 
     <TextView
         android:id="@+id/textViewDate"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:textSize="16sp"
+        android:layout_marginEnd="16dp"
         tools:text="2025年5月" />
 
     <TextView
         android:id="@+id/textViewCategory"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:textSize="16sp"
+        android:layout_marginEnd="16dp"
         tools:text="電気" />
 
     <TextView

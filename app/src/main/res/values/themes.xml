@@ -4,4 +4,8 @@
     <style name="Theme.UtilityExpenses" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         ...
     </style>
+
+    <style name="BottomNavigation.TextAppearance" parent="@style/TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">16sp</item>
+    </style>
 </resources>

@@ -21,7 +21,10 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.orust.utilityexpenses.adapter.UtilityBillAdapter
@@ -45,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewMonthlyTotal: TextView
     private lateinit var textViewInputLabel: TextView
     private lateinit var inputSection: LinearLayout
+    private lateinit var summaryDivider: View // ★ 線のビューへの参照
 
     private lateinit var billAdapter: UtilityBillAdapter
     private var activeCategory: String = ""
@@ -79,6 +83,7 @@ class MainActivity : AppCompatActivity() {
         textViewMonthlyTotal = findViewById(R.id.textViewMonthlyTotal)
         textViewInputLabel = findViewById(R.id.textViewInputLabel)
         inputSection = findViewById(R.id.inputSection)
+        summaryDivider = findViewById(R.id.summary_divider) // ★ 初期化
 
         val cal = Calendar.getInstance()
         currentYear = cal.get(Calendar.YEAR)
@@ -106,21 +111,25 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_total -> {
                     activeCategory = categoryTotal
                     inputSection.visibility = View.GONE
+                    summaryDivider.visibility = View.GONE // ★ 合計タブでは非表示
                 }
                 R.id.nav_electricity -> {
                     activeCategory = categoryElectricity
                     inputCategory = activeCategory
                     inputSection.visibility = View.VISIBLE
+                    summaryDivider.visibility = View.VISIBLE // ★ 他タブでは表示
                 }
                 R.id.nav_gas -> {
                     activeCategory = categoryGas
                     inputCategory = activeCategory
                     inputSection.visibility = View.VISIBLE
+                    summaryDivider.visibility = View.VISIBLE // ★ 他タブでは表示
                 }
                 R.id.nav_water -> {
                     activeCategory = categoryWater
                     inputCategory = activeCategory
                     inputSection.visibility = View.VISIBLE
+                    summaryDivider.visibility = View.VISIBLE // ★ 他タブでは表示
                 }
             }
             textViewInputLabel.text = activeCategory
@@ -138,7 +147,6 @@ class MainActivity : AppCompatActivity() {
                     bills.filter { it.category == activeCategory }
                 }
                 billAdapter.submitList(listToShow)
-                // updateChartには全てのデータを渡し、関数内でカテゴリによるフィルタリングを行う
                 updateChart(bills)
                 updateSummary(bills)
             }
@@ -316,13 +324,28 @@ class MainActivity : AppCompatActivity() {
         barChart.axisLeft.setDrawGridLines(false)
         barChart.axisLeft.axisMinimum = 0f
         barChart.axisRight.isEnabled = false
+
+        barChart.setScaleEnabled(false)
+        barChart.setPinchZoom(false)
+        barChart.isDoubleTapToZoomEnabled = false
+
+        barChart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+            override fun onValueSelected(e: Entry?, h: Highlight?) {
+                if (e == null || activeCategory == getString(R.string.category_total)) {
+                    return
+                }
+
+                val bill = e.data as? UtilityBill ?: return
+                val position = billAdapter.currentList.indexOf(bill)
+                if (position != -1) {
+                    showEditOrDeleteDialog(bill, position)
+                }
+            }
+
+            override fun onNothingSelected() {}
+        })
     }
 
-    /**
-     * グラフを更新する。
-     * 「合計」カテゴリでは、電気・ガス・水道を積み上げた棒グラフを表示する。
-     * それ以外のカテゴリでは、単一の棒グラフを表示する。
-     */
     private fun updateChart(bills: List<UtilityBill>) {
         if (bills.isEmpty()) {
             barChart.data = null
@@ -332,7 +355,6 @@ class MainActivity : AppCompatActivity() {
         }
         barChart.visibility = View.VISIBLE
 
-        // 全てのデータから直近6ヶ月のキー（"年-月"）を取得する
         val allMonthKeys = bills
             .map { "${it.year}-${it.month.toString().padStart(2, '0')}" }
             .distinct()
@@ -350,7 +372,6 @@ class MainActivity : AppCompatActivity() {
         val barData: BarData
 
         if (activeCategory == getString(R.string.category_total)) {
-            // --- 「合計」用の積立棒グラフ ---
             val entries = ArrayList<BarEntry>()
             val categoryElectricity = getString(R.string.category_electricity)
             val categoryGas = getString(R.string.category_gas)
@@ -358,8 +379,6 @@ class MainActivity : AppCompatActivity() {
 
             allMonthKeys.forEachIndexed { index, monthKey ->
                 val billsForMonth = bills.filter { "${it.year}-${it.month.toString().padStart(2, '0')}" == monthKey }
-
-                // 積み立てる値を配列で用意（電気、ガス、水道の順）
                 val stackValues = floatArrayOf(
                     billsForMonth.filter { it.category == categoryElectricity }.sumOf { it.amount }.toFloat(),
                     billsForMonth.filter { it.category == categoryGas }.sumOf { it.amount }.toFloat(),
@@ -368,7 +387,7 @@ class MainActivity : AppCompatActivity() {
                 entries.add(BarEntry(index.toFloat(), stackValues))
             }
 
-            val dataSet = BarDataSet(entries, "") // データセット自体のラベルは不要
+            val dataSet = BarDataSet(entries, "")
             dataSet.stackLabels = arrayOf(categoryElectricity, categoryGas, categoryWater)
             dataSet.colors = listOf(
                 ContextCompat.getColor(this, R.color.purple_200),
@@ -376,25 +395,22 @@ class MainActivity : AppCompatActivity() {
                 ContextCompat.getColor(this, R.color.design_default_color_primary)
             )
             dataSet.valueTextSize = 10f
+            dataSet.isHighlightEnabled = false
 
             barData = BarData(dataSet)
-            barChart.legend.isEnabled = true // 積立の凡例を表示
+            barChart.legend.isEnabled = true
 
         } else {
-            // --- 個別カテゴリ用の単一棒グラフ ---
             val entries = ArrayList<BarEntry>()
             val billsForCategory = bills.filter { it.category == activeCategory }
 
             allMonthKeys.forEachIndexed { index, monthKey ->
-                val total = billsForCategory
-                    .filter { "${it.year}-${it.month.toString().padStart(2, '0')}" == monthKey }
-                    .sumOf { it.amount }
-                    .toFloat()
-                entries.add(BarEntry(index.toFloat(), total))
+                val billForMonth = billsForCategory.find { "${it.year}-${it.month.toString().padStart(2, '0')}" == monthKey }
+                val total = billForMonth?.amount?.toFloat() ?: 0f
+                entries.add(BarEntry(index.toFloat(), total, billForMonth))
             }
 
             val dataSet = BarDataSet(entries, activeCategory)
-            // カテゴリに応じて色を設定
             dataSet.color = when(activeCategory) {
                 getString(R.string.category_electricity) -> ContextCompat.getColor(this, R.color.purple_200)
                 getString(R.string.category_gas) -> ContextCompat.getColor(this, R.color.teal_200)
@@ -402,22 +418,22 @@ class MainActivity : AppCompatActivity() {
                 else -> ContextCompat.getColor(this, R.color.black)
             }
             dataSet.valueTextSize = 10f
+            dataSet.highLightAlpha = 0
 
             barData = BarData(dataSet)
-            barChart.legend.isEnabled = false // 単一カテゴリでは凡例は不要
+            barChart.legend.isEnabled = false
         }
 
         barData.barWidth = 0.5f
         barChart.data = barData
 
-        // X軸の設定
         val labels = allMonthKeys.map { "${it.split('-')[1].toInt()}月" }
         val xAxis = barChart.xAxis
         xAxis.valueFormatter = IndexAxisValueFormatter(labels)
         xAxis.labelCount = labels.size
-        xAxis.setCenterAxisLabels(false) // グループ化しないためfalseに設定
+        xAxis.setCenterAxisLabels(false)
 
-        barChart.invalidate() // グラフを再描画
+        barChart.invalidate()
     }
 
     private fun createBillFromInput(isEdit: Boolean = false, dialogView: View? = null, originalId: Int = 0): UtilityBill? {
