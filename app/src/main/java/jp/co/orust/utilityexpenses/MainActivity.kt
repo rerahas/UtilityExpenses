@@ -138,7 +138,8 @@ class MainActivity : AppCompatActivity() {
                     bills.filter { it.category == activeCategory }
                 }
                 billAdapter.submitList(listToShow)
-                updateChart(listToShow)
+                // updateChartには全てのデータを渡し、関数内でカテゴリによるフィルタリングを行う
+                updateChart(bills)
                 updateSummary(bills)
             }
         }
@@ -317,66 +318,106 @@ class MainActivity : AppCompatActivity() {
         barChart.axisRight.isEnabled = false
     }
 
+    /**
+     * グラフを更新する。
+     * 「合計」カテゴリでは、電気・ガス・水道を積み上げた棒グラフを表示する。
+     * それ以外のカテゴリでは、単一の棒グラフを表示する。
+     */
     private fun updateChart(bills: List<UtilityBill>) {
         if (bills.isEmpty()) {
+            barChart.data = null
             barChart.visibility = View.GONE
+            barChart.invalidate()
             return
         }
         barChart.visibility = View.VISIBLE
-        val dataToChart = if (activeCategory == getString(R.string.category_total)) {
-            // "合計" の場合はカテゴリごとに集計
-            bills.groupBy { it.category }
-                .mapValues { entry ->
-                    entry.value.groupBy { "${it.year}-${it.month.toString().padStart(2, '0')}" }
-                        .mapValues { it.value.sumOf { bill -> bill.amount } }
-                }
-        } else {
-            // それ以外のカテゴリは月ごとに集計
-            mapOf(activeCategory to bills.groupBy { "${it.year}-${it.month.toString().padStart(2, '0')}" }
-                .mapValues { it.value.sumOf { bill -> bill.amount } })
-        }
 
-        val allMonthKeys = dataToChart.values.flatMap { it.keys }.distinct().sortedDescending().take(6).reversed()
+        // 全てのデータから直近6ヶ月のキー（"年-月"）を取得する
+        val allMonthKeys = bills
+            .map { "${it.year}-${it.month.toString().padStart(2, '0')}" }
+            .distinct()
+            .sortedDescending()
+            .take(6)
+            .reversed()
+
         if (allMonthKeys.isEmpty()) {
+            barChart.data = null
             barChart.visibility = View.GONE
+            barChart.invalidate()
             return
         }
 
-        val dataSets = mutableListOf<BarDataSet>()
-        val colors = mapOf(
-            getString(R.string.category_electricity) to ContextCompat.getColor(this, R.color.purple_200),
-            getString(R.string.category_gas) to ContextCompat.getColor(this, R.color.teal_200),
-            getString(R.string.category_water) to ContextCompat.getColor(this, R.color.design_default_color_primary)
-        )
+        val barData: BarData
 
-        dataToChart.forEach { (category, monthlyData) ->
+        if (activeCategory == getString(R.string.category_total)) {
+            // --- 「合計」用の積立棒グラフ ---
             val entries = ArrayList<BarEntry>()
+            val categoryElectricity = getString(R.string.category_electricity)
+            val categoryGas = getString(R.string.category_gas)
+            val categoryWater = getString(R.string.category_water)
+
             allMonthKeys.forEachIndexed { index, monthKey ->
-                val total = monthlyData[monthKey]?.toFloat() ?: 0f
+                val billsForMonth = bills.filter { "${it.year}-${it.month.toString().padStart(2, '0')}" == monthKey }
+
+                // 積み立てる値を配列で用意（電気、ガス、水道の順）
+                val stackValues = floatArrayOf(
+                    billsForMonth.filter { it.category == categoryElectricity }.sumOf { it.amount }.toFloat(),
+                    billsForMonth.filter { it.category == categoryGas }.sumOf { it.amount }.toFloat(),
+                    billsForMonth.filter { it.category == categoryWater }.sumOf { it.amount }.toFloat()
+                )
+                entries.add(BarEntry(index.toFloat(), stackValues))
+            }
+
+            val dataSet = BarDataSet(entries, "") // データセット自体のラベルは不要
+            dataSet.stackLabels = arrayOf(categoryElectricity, categoryGas, categoryWater)
+            dataSet.colors = listOf(
+                ContextCompat.getColor(this, R.color.purple_200),
+                ContextCompat.getColor(this, R.color.teal_200),
+                ContextCompat.getColor(this, R.color.design_default_color_primary)
+            )
+            dataSet.valueTextSize = 10f
+
+            barData = BarData(dataSet)
+            barChart.legend.isEnabled = true // 積立の凡例を表示
+
+        } else {
+            // --- 個別カテゴリ用の単一棒グラフ ---
+            val entries = ArrayList<BarEntry>()
+            val billsForCategory = bills.filter { it.category == activeCategory }
+
+            allMonthKeys.forEachIndexed { index, monthKey ->
+                val total = billsForCategory
+                    .filter { "${it.year}-${it.month.toString().padStart(2, '0')}" == monthKey }
+                    .sumOf { it.amount }
+                    .toFloat()
                 entries.add(BarEntry(index.toFloat(), total))
             }
-            val dataSet = BarDataSet(entries, category)
-            dataSet.color = colors[category] ?: ContextCompat.getColor(this, R.color.black)
+
+            val dataSet = BarDataSet(entries, activeCategory)
+            // カテゴリに応じて色を設定
+            dataSet.color = when(activeCategory) {
+                getString(R.string.category_electricity) -> ContextCompat.getColor(this, R.color.purple_200)
+                getString(R.string.category_gas) -> ContextCompat.getColor(this, R.color.teal_200)
+                getString(R.string.category_water) -> ContextCompat.getColor(this, R.color.design_default_color_primary)
+                else -> ContextCompat.getColor(this, R.color.black)
+            }
             dataSet.valueTextSize = 10f
-            dataSets.add(dataSet)
+
+            barData = BarData(dataSet)
+            barChart.legend.isEnabled = false // 単一カテゴリでは凡例は不要
         }
 
-        val barData = BarData(dataSets.toList())
         barData.barWidth = 0.5f
-
-        if (dataSets.size > 1) {
-            barData.groupBars(0f, 0.06f, 0.02f) // 複数のデータセットがある場合
-            barChart.legend.isEnabled = true
-        } else {
-            barChart.legend.isEnabled = false
-        }
-
         barChart.data = barData
+
+        // X軸の設定
         val labels = allMonthKeys.map { "${it.split('-')[1].toInt()}月" }
-        barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-        barChart.xAxis.labelCount = labels.size
-        barChart.xAxis.setCenterAxisLabels(dataSets.size > 1)
-        barChart.invalidate()
+        val xAxis = barChart.xAxis
+        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+        xAxis.labelCount = labels.size
+        xAxis.setCenterAxisLabels(false) // グループ化しないためfalseに設定
+
+        barChart.invalidate() // グラフを再描画
     }
 
     private fun createBillFromInput(isEdit: Boolean = false, dialogView: View? = null, originalId: Int = 0): UtilityBill? {
